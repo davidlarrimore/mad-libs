@@ -19,8 +19,8 @@ Strict linear state machine with five phases:
 | Phase        | Description |
 | ------------ | ----------- |
 | `SELECTION`  | Full-screen menu. Dave clicks one of three ominously-named Mad Lib challenges. |
-| `COLLECTION` | Split screen: large word-type prompt on left, growing word list on right. Dave types each word and hits Enter. **Async image generation request fires when this phase begins.** |
-| `REVEAL`     | Full-screen dramatic animation: pulsing "REVEAL" text, flash to black, themed background fades in. |
+| `COLLECTION` | Split screen: large word-type prompt on left, growing word list on right. Dave types each word and hits Enter. |
+| `REVEAL`     | Full-screen dramatic animation: pulsing "REVEAL" text, flash to black, themed background fades in. **Async image generation fires as we enter this phase, now that all words are collected.** |
 | `STORY`      | Words appear one-by-one in Mad Lib format on the themed background. Blanks styled as underlined tokens with word-type label beneath. Image generation completes in background during this phase. |
 | `IMAGE`      | AI-generated image fills the screen with a fade-in. Only entered once story is done AND image is ready. |
 
@@ -30,9 +30,11 @@ Strict linear state machine with five phases:
   screen-shared. Large fonts, high contrast, minimal UI chrome.
 - **Operator-controlled.** Dave is the only person interacting. No touch targets or
   mobile considerations.
-- **Async image generation.** The OpenAI API call fires at the start of `COLLECTION`
-  (once the Mad Lib is selected), so the image is ready — or nearly ready — by the
-  time the story finishes displaying.
+- **Async image generation.** The OpenAI API call fires at the start of `REVEAL`
+  (the moment the last word is submitted), using the completed story as the
+  prompt. REVEAL + STORY together give DALL-E a ~13s head start before the user
+  clicks Continue; if the image is still generating when Continue is clicked, the
+  art frame shows a spinner until it arrives.
 - **No persistence.** All state lives in React state. Refresh resets to `SELECTION`.
 - No auth, no database, no user accounts.
 
@@ -43,8 +45,8 @@ Strict linear state machine with five phases:
 - Model: `dall-e-3`
 - Resolution: `1024x1024`
 - Quality: `standard` (not `hd` — faster, still excellent for this use case)
-- Expected latency: 8–20 seconds. This is why the API call fires at `COLLECTION`
-  start, not `REVEAL` start.
+- Expected latency: 8–20 seconds. The API call fires at `REVEAL` start so the
+  completed story can be baked into the prompt.
 - Cost: ~$0.040 per image. Three rounds = ~$0.12 total. Negligible.
 
 Chosen over Gemini Imagen / Stability for lowest API friction: one POST, one URL
@@ -202,7 +204,8 @@ RESET              {}                  // returns to SELECTION
 
 - Owns the `useReducer` state and dispatch.
 - Renders the correct screen component based on `phase`.
-- On `SELECT_MAD_LIB`: **immediately** fires async `fetch('/api/generate-image', ...)`.
+- On the last `SUBMIT_WORD` (transition to `REVEAL`): fires async
+  `fetch('/api/generate-image', ...)` using the completed story as the prompt.
   Does NOT await. Dispatches `IMAGE_READY` or `IMAGE_ERROR` when it resolves.
 - On `STORY_COMPLETE`: transitions to `IMAGE` only if `imageUrl` is populated.
   Otherwise show a themed loading spinner overlay until `IMAGE_READY` fires.
@@ -234,8 +237,9 @@ Layout: two-column split, left ~65%, right ~35%.
 - Scrolls if long (unlikely at 11 max, but handle it).
 - Current pending slot shown as a pulsing empty row.
 
-**Image generation:** fires silently on mount. No UI indication to audience. Operator
-doesn't need to know status during this phase.
+**Image generation:** does NOT fire on this screen anymore. It fires when the last
+word is submitted and the phase transitions to `REVEAL`, so the full story can be
+used as the prompt.
 
 ### 5.4 `RevealScreen.jsx`
 
@@ -317,18 +321,28 @@ app.post('/api/generate-image', async (req, res) => {
 
 ### 6.2 Prompt Construction
 
-The image prompt is built in `App.jsx` when `SELECT_MAD_LIB` fires — **before** any
-words are collected. It uses the Mad Lib's static metadata only. User words are NOT
-in the image prompt. The image represents the **world** of the Mad Lib, not the
-specific story, ensuring visual coherence regardless of what the kids choose.
+The image prompt is built in `App.jsx` when the last `SUBMIT_WORD` fires — after
+**all** words are collected, as the phase transitions to `REVEAL`. The completed
+story is the core of the prompt; the `background` and `imagePromptSuffix` fields
+add scene atmosphere and art-style guidance respectively. This way the kids see
+*their* absurd creation on screen, not a generic themed backdrop.
 
 ```js
-function buildImagePrompt(madLib) {
-  return `${madLib.background}. ${madLib.imagePromptSuffix}`;
+function buildImagePrompt(madLib, collectedWords) {
+  const story = madLib.template
+    .map((token) =>
+      token.type === 'text' ? token.value : collectedWords[token.slotId],
+    )
+    .join('')
+    .trim();
+  return `${story} ${madLib.background}. ${madLib.imagePromptSuffix}`;
 }
-// Example for Operation Metamorphosis:
-// "dark jungle, bioluminescent plants, alien atmosphere, deep purple sky.
-//  Digital fantasy creature concept art, vivid colors, dramatic lighting, no text"
+// Example for Operation Metamorphosis (filled):
+// "A glowing lizard creature with slimy wings and electric eyes. It slithers
+//  through the moon and explodes when threatened. Its favorite food is
+//  spaghetti and it makes a deafening sound. dark jungle, bioluminescent
+//  plants, alien atmosphere, deep purple sky. Digital fantasy creature concept
+//  art, vivid colors, dramatic lighting, no text"
 ```
 
 ### 6.3 Environment Variable Setup

@@ -25,7 +25,6 @@ function reducer(state, action) {
         ...initialState,
         phase: 'COLLECTION',
         selectedMadLib: action.madLib,
-        imageLoading: true,
       };
 
     case 'SUBMIT_WORD': {
@@ -38,6 +37,10 @@ function reducer(state, action) {
         collectedWords,
         currentSlotIndex: isLast ? state.currentSlotIndex : nextIndex,
         phase: isLast ? 'REVEAL' : state.phase,
+        // Fire the image request at REVEAL start, so the completed story can
+        // drive the prompt. The REVEAL + STORY phases give DALL-E a ~13s
+        // head start before the user clicks Continue.
+        imageLoading: isLast ? true : state.imageLoading,
       };
     }
 
@@ -70,19 +73,25 @@ function reducer(state, action) {
   }
 }
 
-function buildImagePrompt(madLib) {
-  return `${madLib.background}. ${madLib.imagePromptSuffix}`;
+function buildImagePrompt(madLib, collectedWords) {
+  const story = madLib.template
+    .map((token) =>
+      token.type === 'text' ? token.value : collectedWords[token.slotId],
+    )
+    .join('')
+    .trim();
+  return `${story} ${madLib.background}. ${madLib.imagePromptSuffix}`;
 }
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const requestIdRef = useRef(0);
 
-  // Fire image request whenever imageLoading flips true (initial select + retries).
+  // Fire image request whenever imageLoading flips true (REVEAL start + retries).
   useEffect(() => {
     if (!state.selectedMadLib || !state.imageLoading) return;
     const myRequestId = ++requestIdRef.current;
-    const prompt = buildImagePrompt(state.selectedMadLib);
+    const prompt = buildImagePrompt(state.selectedMadLib, state.collectedWords);
     fetch('/api/generate-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
