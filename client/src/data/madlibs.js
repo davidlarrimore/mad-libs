@@ -110,7 +110,10 @@ export const MAD_LIBS = [
       { id: 'noun4', type: 'SOUND',     hint: 'a type of sound',             examples: ['a foghorn', 'a hamster', 'a jazz band'] },
     ],
     template: [
-      { type: 'text', value: 'Create an image of a device called the ' },
+      // "Whimsical contraption" instead of "device" because "device" primes
+      // DALL-E to produce a labeled technical diagram; the softer word
+      // keeps it in illustration mode.
+      { type: 'text', value: 'Create an image of a whimsical contraption named ' },
       { type: 'slot', slotId: 'noun1' },
       { type: 'text', value: ' that ' },
       { type: 'slot', slotId: 'verb1' },
@@ -124,7 +127,7 @@ export const MAD_LIBS = [
       { type: 'slot', slotId: 'verb4' },
       { type: 'text', value: '. It uses ' },
       { type: 'slot', slotId: 'adj1' },
-      { type: 'text', value: ' technology and produces ' },
+      { type: 'text', value: ' magic and produces ' },
       { type: 'slot', slotId: 'noun3' },
       { type: 'text', value: ' as a side effect. When activated it ' },
       { type: 'slot', slotId: 'verb5' },

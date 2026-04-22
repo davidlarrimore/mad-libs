@@ -73,14 +73,27 @@ function reducer(state, action) {
   }
 }
 
-// Appended to every image prompt so DALL-E 3 doesn't render gibberish
-// captions. The kids' Mad Lib text drives the aesthetic; we only add this
-// anti-text rule as a thin safety net. Deliberately no "art style" override
-// here — that was causing every round to look the same.
-const NO_TEXT_RULE =
-  'The image must contain no text, no letters, no numbers, no words, ' +
-  'no captions, no writing, no labels, no signage, and no typography of any kind. ' +
-  'Purely pictorial.';
+// Prefixed (not appended!) to every image prompt. DALL-E 3 weights the
+// beginning of the prompt far more than the end, and it ALWAYS rewrites
+// the prompt internally before generating. A "no text" rule tacked on at
+// the end gets weak-weighted and ignored once DALL-E has decided it's
+// looking at a patent/diagram description. Putting the negative constraints
+// first forces the model to commit to "pure illustration, no annotations"
+// before it sees the description. We also forbid specific text-heavy
+// styles by name because that's the most reliable way to keep DALL-E
+// out of patent-drawing / technical-diagram / book-page modes.
+const ANTI_TEXT_PREFIX =
+  'Generate a single purely pictorial illustration. ' +
+  'ABSOLUTELY NO text, letters, numbers, words, captions, writing, labels, ' +
+  'signage, annotations, callouts, or typography of any kind may appear ' +
+  'anywhere in the image. ' +
+  'Do NOT render this as a patent drawing, technical diagram, blueprint, ' +
+  'schematic, book illustration page, comic panel, or annotated figure. ' +
+  'Style it as vibrant illustration art, not a document. ' +
+  'Subject to illustrate:';
+
+const ANTI_TEXT_SUFFIX =
+  'Reminder: the image must be entirely wordless. Pure visual illustration only.';
 
 function buildImagePrompt(madLib, collectedWords) {
   const storyText = madLib.template
@@ -89,7 +102,7 @@ function buildImagePrompt(madLib, collectedWords) {
     )
     .join('')
     .trim();
-  return `${storyText}\n\n${NO_TEXT_RULE}`;
+  return `${ANTI_TEXT_PREFIX}\n\n${storyText}\n\n${ANTI_TEXT_SUFFIX}`;
 }
 
 export default function App() {
