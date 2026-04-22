@@ -113,7 +113,7 @@ export const MAD_LIBS = [
       // "Whimsical contraption" instead of "device" because "device" primes
       // DALL-E to produce a labeled technical diagram; the softer word
       // keeps it in illustration mode.
-      { type: 'text', value: 'Create an image of a whimsical contraption named ' },
+      { type: 'text', value: 'Create an image of a contraption named ' },
       { type: 'slot', slotId: 'noun1' },
       { type: 'text', value: ' that ' },
       { type: 'slot', slotId: 'verb1' },
