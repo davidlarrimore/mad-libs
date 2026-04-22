@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 
-// Pacing: text tokens land roughly every 350ms, slot (filled word) tokens get
-// a longer beat at 600ms for emphasis. Tuned to feel dramatic without dragging.
-const TEXT_DELAY_MS = 350;
-const SLOT_DELAY_MS = 600;
+// Pacing: text tokens land every 500ms, slot (filled word) tokens get a longer
+// 900ms beat for emphasis. Slower feels more theatrical; Continue gate lets
+// the operator advance manually if a particular group wants it snappier.
+const TEXT_DELAY_MS = 500;
+const SLOT_DELAY_MS = 900;
 
 export default function StoryScreen({ state, dispatch }) {
   const {
