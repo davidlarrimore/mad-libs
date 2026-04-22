@@ -74,24 +74,14 @@ function reducer(state, action) {
 }
 
 function buildImagePrompt(madLib, collectedWords) {
-  const story = madLib.template
-    .map((token) =>
-      token.type === 'text' ? token.value : collectedWords[token.slotId],
-    )
-    .join('')
-    .trim();
-  // Lead with medium so DALL-E knows it's making an illustration, not a
-  // narrated page. "Illustrate this scene:" frames the story as visual
-  // subject matter — without it DALL-E renders the narration as gibberish
-  // caption text next to the subject. Triple-emphasize no-text at the end
-  // because DALL-E 3 ignores weak no-text hints inside narrative prompts.
-  return (
-    `${madLib.imagePromptSuffix}. ` +
-    `Illustrate this scene: "${story}" ` +
-    `Environment: ${madLib.background}. ` +
-    `Strict rule: the image must contain absolutely no text, no letters, ` +
-    `no words, no captions, no writing, no typography, no labels — ` +
-    `purely pictorial illustration only.`
+  // Each Mad Lib carries its own `imagePrompt` template with {slotId}
+  // placeholders — prompts are shaped per use case so DALL-E can produce
+  // something coherent for the particular aesthetic (creature concept art,
+  // surreal office rendering, steampunk oil painting) without slipping
+  // into text-rendering modes. See madlibs.js for the templates.
+  return madLib.imagePrompt.replace(
+    /\{(\w+)\}/g,
+    (_, slotId) => collectedWords[slotId] ?? `[${slotId}]`,
   );
 }
 
@@ -104,22 +94,43 @@ export default function App() {
     if (!state.selectedMadLib || !state.imageLoading) return;
     const myRequestId = ++requestIdRef.current;
     const prompt = buildImagePrompt(state.selectedMadLib, state.collectedWords);
+
+    console.groupCollapsed(
+      `%c[image] request #${myRequestId} — ${state.selectedMadLib.codename}`,
+      'color:#ffd95e;font-weight:bold',
+    );
+    console.log('prompt:\n' + prompt);
+    console.log('collected words:', state.collectedWords);
+    console.groupEnd();
+
+    const startedAt = performance.now();
     fetch('/api/generate-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt }),
     })
-      .then(async (r) => ({ ok: r.ok, data: await r.json().catch(() => ({})) }))
-      .then(({ ok, data }) => {
+      .then(async (r) => ({ ok: r.ok, status: r.status, data: await r.json().catch(() => ({})) }))
+      .then(({ ok, status, data }) => {
         if (myRequestId !== requestIdRef.current) return;
+        const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1);
         if (ok && data.url) {
+          console.log(
+            `%c[image] response #${myRequestId} — ok in ${elapsed}s`,
+            'color:#3fd8e0',
+            { url: data.url },
+          );
           dispatch({ type: 'IMAGE_READY', url: data.url });
         } else {
+          console.warn(
+            `[image] response #${myRequestId} — FAILED in ${elapsed}s (HTTP ${status})`,
+            data,
+          );
           dispatch({ type: 'IMAGE_ERROR', error: data.error || 'Image generation failed' });
         }
       })
       .catch((err) => {
         if (myRequestId !== requestIdRef.current) return;
+        console.error(`[image] request #${myRequestId} threw:`, err);
         dispatch({ type: 'IMAGE_ERROR', error: err.message || 'Network error' });
       });
   }, [state.selectedMadLib, state.imageLoading]);

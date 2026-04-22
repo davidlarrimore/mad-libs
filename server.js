@@ -20,6 +20,11 @@ app.post('/api/generate-image', async (req, res) => {
     return res.status(500).json({ error: 'OPENAI_API_KEY is not set on the server' });
   }
 
+  const requestId = Math.random().toString(36).slice(2, 8);
+  const startedAt = Date.now();
+  console.log(`\n[image ${requestId}] → OpenAI (${prompt.length} chars)`);
+  console.log(`[image ${requestId}] prompt:\n${prompt}\n`);
+
   try {
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
@@ -37,15 +42,22 @@ app.post('/api/generate-image', async (req, res) => {
     });
 
     const data = await response.json();
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+
     if (response.ok && data?.data?.[0]?.url) {
+      console.log(`[image ${requestId}] ← ok in ${elapsed}s`);
+      if (data.data[0].revised_prompt) {
+        console.log(`[image ${requestId}] DALL-E revised prompt:\n${data.data[0].revised_prompt}\n`);
+      }
       return res.json({ url: data.data[0].url });
     }
-    console.error('OpenAI image error:', data);
+    console.error(`[image ${requestId}] ← FAILED in ${elapsed}s (HTTP ${response.status}):`, data);
     return res.status(response.status || 500).json({
       error: data?.error?.message || 'Image generation failed',
     });
   } catch (err) {
-    console.error('Image fetch threw:', err);
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.error(`[image ${requestId}] ← threw after ${elapsed}s:`, err);
     return res.status(500).json({ error: err.message || 'Unknown server error' });
   }
 });
