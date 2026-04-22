@@ -525,10 +525,12 @@ body {
 }
 
 /* Hover model: the hovered side rises to the foreground and scales up;
-   the other side fades to transparent in place (no movement, no reflow). */
+   the other side fades to transparent in place (no movement, no reflow).
+   Scale kept to 1.15 so the hovered content can't overflow a half-panel
+   on narrower viewports (the showcase clips overflow). */
 .showcase:has(.showcase-frame-wrap:hover) .showcase-frame-wrap {
   z-index: 10;
-  transform: scale(1.25);
+  transform: scale(1.15);
 }
 .showcase:has(.showcase-frame-wrap:hover) .showcase-story-wrap {
   opacity: 0;
@@ -537,7 +539,7 @@ body {
 
 .showcase:has(.showcase-story-wrap:hover) .showcase-story-wrap {
   z-index: 10;
-  transform: scale(1.2);
+  transform: scale(1.15);
 }
 .showcase:has(.showcase-story-wrap:hover) .showcase-frame-wrap {
   opacity: 0;
@@ -568,15 +570,18 @@ body {
 
 .art-frame-image {
   display: block;
-  width: min(44vw, 68vh);
-  height: min(44vw, 68vh);
+  /* Sized to fit comfortably inside a half-panel even after hover scale,
+     so the frame never gets clipped by showcase's overflow:hidden on
+     narrower viewports. 32vw ceiling gives hover scale room to grow. */
+  width: min(32vw, 55vh);
+  height: min(32vw, 55vh);
   object-fit: cover;
   animation: fade-in 0.9s ease-in;
 }
 
 .art-frame-panel {
-  width: min(44vw, 68vh);
-  height: min(44vw, 68vh);
+  width: min(32vw, 55vh);
+  height: min(32vw, 55vh);
   background: #f4ede0;
   color: #3a2510;
   display: flex;
@@ -656,12 +661,23 @@ body {
   font-weight: 600;
 }
 
-.showcase-reset {
+.showcase-actions {
   position: absolute;
   bottom: 1.25rem;
   right: 1.25rem;
+  display: flex;
+  gap: 0.5rem;
   opacity: 0;
   transition: opacity 0.25s ease;
+  z-index: 20;
+}
+
+.showcase:hover .showcase-actions,
+.showcase-actions:focus-within {
+  opacity: 1;
+}
+
+.showcase-action {
   font-size: 0.9rem;
   padding: 0.5rem 1.1rem;
   background: rgba(0, 0, 0, 0.5);
@@ -672,13 +688,19 @@ body {
   cursor: pointer;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  z-index: 10;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.showcase:hover .showcase-reset,
-.showcase-reset:focus-visible {
-  opacity: 1;
+.showcase-action:hover:not(:disabled),
+.showcase-action:focus-visible {
+  background: rgba(0, 0, 0, 0.75);
+  border-color: rgba(255, 255, 255, 0.55);
   outline: none;
+}
+
+.showcase-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* =========================================================================
