@@ -56,12 +56,23 @@ export default function ImageScreen({ state, dispatch }) {
         </p>
       </div>
 
-      <button
-        className="showcase-reset"
-        onClick={() => dispatch({ type: 'RESET' })}
-      >
-        Reset
-      </button>
+      <div className="showcase-actions">
+        <button
+          className="showcase-action"
+          onClick={() => dispatch({ type: 'RETRY_IMAGE' })}
+          disabled={state.imageLoading}
+          title="Re-generate the image using the same prompt"
+        >
+          {state.imageLoading ? 'Generating…' : 'Retry'}
+        </button>
+        <button
+          className="showcase-action"
+          onClick={() => dispatch({ type: 'RESET' })}
+          title="Start a new round"
+        >
+          Reset
+        </button>
+      </div>
     </div>
   );
 }

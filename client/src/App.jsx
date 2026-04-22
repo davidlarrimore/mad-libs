@@ -73,16 +73,23 @@ function reducer(state, action) {
   }
 }
 
+// Appended to every image prompt so DALL-E 3 doesn't render gibberish
+// captions. The kids' Mad Lib text drives the aesthetic; we only add this
+// anti-text rule as a thin safety net. Deliberately no "art style" override
+// here — that was causing every round to look the same.
+const NO_TEXT_RULE =
+  'The image must contain no text, no letters, no numbers, no words, ' +
+  'no captions, no writing, no labels, no signage, and no typography of any kind. ' +
+  'Purely pictorial.';
+
 function buildImagePrompt(madLib, collectedWords) {
-  // Each Mad Lib carries its own `imagePrompt` template with {slotId}
-  // placeholders — prompts are shaped per use case so DALL-E can produce
-  // something coherent for the particular aesthetic (creature concept art,
-  // surreal office rendering, steampunk oil painting) without slipping
-  // into text-rendering modes. See madlibs.js for the templates.
-  return madLib.imagePrompt.replace(
-    /\{(\w+)\}/g,
-    (_, slotId) => collectedWords[slotId] ?? `[${slotId}]`,
-  );
+  const storyText = madLib.template
+    .map((token) =>
+      token.type === 'text' ? token.value : collectedWords[token.slotId],
+    )
+    .join('')
+    .trim();
+  return `${storyText}\n\n${NO_TEXT_RULE}`;
 }
 
 export default function App() {
