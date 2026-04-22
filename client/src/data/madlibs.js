@@ -52,9 +52,9 @@ export const MAD_LIBS = [
     codename: 'Spatial Recalibration',
     theme: 'office',
     background:
-      'modern open office interior in surreal blueprint illustration style, soft architectural rendering, pale blue tones',
+      'modern open office interior, surreal architectural concept rendering, pale blue tones',
     imagePromptSuffix:
-      'Architectural illustration, interior design concept art, vivid and surreal, no text, no logos',
+      'Architectural illustration, interior design concept art, vivid and surreal, no text anywhere, no logos, no signage',
     slots: [
       { id: 'adj1',  type: 'COLOR',       hint: 'a color or pattern',     examples: ['neon', 'polka-dotted', 'holographic'] },
       { id: 'adj2',  type: 'TEXTURE',     hint: 'a surface quality',      examples: ['bouncy', 'transparent', 'furry'] },
@@ -100,9 +100,9 @@ export const MAD_LIBS = [
     codename: 'Patent Pending',
     theme: 'device',
     background:
-      'vintage patent blueprint on aged parchment, technical engineering diagram with labels and arrows, sepia tones',
+      'vintage engineering concept illustration on aged parchment, sepia tones, detailed mechanical cross-section style',
     imagePromptSuffix:
-      'Detailed technical blueprint style illustration, vintage engineering diagram, sepia tones, no text on the device itself',
+      'Detailed vintage engineering illustration, sepia tones, no text or labels of any kind, no writing on the parchment, pure visual cross-section only',
     slots: [
       { id: 'noun1', type: 'NAME',        hint: 'make up a name',              examples: ['Turbo-Blaster', 'The Snorkelizer', 'Mega-Scooper'] },
       { id: 'verb1', type: 'ACTION',      hint: 'any action verb',             examples: ['inflates', 'dissolves', 'harmonizes'] },

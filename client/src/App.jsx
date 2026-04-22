@@ -80,7 +80,19 @@ function buildImagePrompt(madLib, collectedWords) {
     )
     .join('')
     .trim();
-  return `${story} ${madLib.background}. ${madLib.imagePromptSuffix}`;
+  // Lead with medium so DALL-E knows it's making an illustration, not a
+  // narrated page. "Illustrate this scene:" frames the story as visual
+  // subject matter — without it DALL-E renders the narration as gibberish
+  // caption text next to the subject. Triple-emphasize no-text at the end
+  // because DALL-E 3 ignores weak no-text hints inside narrative prompts.
+  return (
+    `${madLib.imagePromptSuffix}. ` +
+    `Illustrate this scene: "${story}" ` +
+    `Environment: ${madLib.background}. ` +
+    `Strict rule: the image must contain absolutely no text, no letters, ` +
+    `no words, no captions, no writing, no typography, no labels — ` +
+    `purely pictorial illustration only.`
+  );
 }
 
 export default function App() {
