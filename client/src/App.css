@@ -524,64 +524,72 @@ body {
   animation-name: showcase-story-in;
 }
 
-/* Hover model: the hovered side rises to the foreground and scales up;
-   the other side fades to transparent in place (no movement, no reflow).
-   Scale kept to 1.15 so the hovered content can't overflow a half-panel
-   on narrower viewports (the showcase clips overflow). */
+/* Dimming overlay. Pseudo-element sits above the default layout but below
+   the hovered frame (z-index: 5 < z-index: 10). pointer-events:none so it
+   never blocks hover targeting. */
+.showcase::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Image hover: lightbox-style. Frame lifts above the dim, scales 1.5x,
+   and slides to viewport center (translateX by roughly half the wrap
+   width). Story gets no hover interaction anymore. */
+.showcase:has(.showcase-frame-wrap:hover)::before {
+  opacity: 1;
+}
+
 .showcase:has(.showcase-frame-wrap:hover) .showcase-frame-wrap {
   z-index: 10;
-  transform: scale(1.15);
-}
-.showcase:has(.showcase-frame-wrap:hover) .showcase-story-wrap {
-  opacity: 0;
-  pointer-events: none;
+  transform: scale(1.5) translateX(25vw);
 }
 
-.showcase:has(.showcase-story-wrap:hover) .showcase-story-wrap {
-  z-index: 10;
-  transform: scale(1.15);
-}
-.showcase:has(.showcase-story-wrap:hover) .showcase-frame-wrap {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Art frame: dark gallery frame with cream mat around the square image. */
+/* Art frame: dark gallery frame with cream mat around the square image.
+   Outer .art-frame has a fixed size; inner content (mat/image or panel)
+   fills via flex, so the frame size doesn't change across states
+   (loading → loaded → error) and retries don't cause a reflow. */
 .art-frame {
+  width: min(30vw, 55vh);
+  aspect-ratio: 1 / 1;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  display: flex;
   background: linear-gradient(145deg, #1a1410 0%, #0d0a06 50%, #1a1410 100%);
-  padding: 1.75rem;
   border-radius: 3px;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06) inset,
     0 2px 0 rgba(255, 255, 255, 0.04) inset,
     0 40px 100px rgba(0, 0, 0, 0.65),
     0 12px 30px rgba(0, 0, 0, 0.4);
-  max-width: 100%;
-  max-height: 100%;
 }
 
 .art-frame-mat {
+  flex: 1;
+  padding: 1rem;
+  box-sizing: border-box;
+  display: flex;
   background: linear-gradient(180deg, #f4ede0 0%, #e8dfc7 100%);
-  padding: 1.1rem;
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.12) inset,
     0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .art-frame-image {
+  width: 100%;
+  height: 100%;
   display: block;
-  /* Sized to fit comfortably inside a half-panel even after hover scale,
-     so the frame never gets clipped by showcase's overflow:hidden on
-     narrower viewports. 32vw ceiling gives hover scale room to grow. */
-  width: min(32vw, 55vh);
-  height: min(32vw, 55vh);
   object-fit: cover;
   animation: fade-in 0.9s ease-in;
 }
 
 .art-frame-panel {
-  width: min(32vw, 55vh);
-  height: min(32vw, 55vh);
+  flex: 1;
   background: #f4ede0;
   color: #3a2510;
   display: flex;
