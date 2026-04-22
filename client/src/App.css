@@ -547,7 +547,10 @@ body {
 
 .showcase:has(.showcase-frame-wrap:hover) .showcase-frame-wrap {
   z-index: 10;
-  transform: scale(1.5) translateX(25vw);
+  /* Order matters: scale first, THEN translate. If we wrote
+     `scale(1.5) translateX(25vw)` the 25vw translate would itself get
+     scaled to 37.5vw — pushing the frame past center to the right. */
+  transform: translateX(25vw) scale(1.5);
 }
 
 /* Art frame: dark gallery frame with cream mat around the square image.

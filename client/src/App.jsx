@@ -73,15 +73,36 @@ function reducer(state, action) {
   }
 }
 
-// Prefixed (not appended!) to every image prompt. DALL-E 3 weights the
-// beginning of the prompt far more than the end, and it ALWAYS rewrites
-// the prompt internally before generating. A "no text" rule tacked on at
-// the end gets weak-weighted and ignored once DALL-E has decided it's
-// looking at a patent/diagram description. Putting the negative constraints
-// first forces the model to commit to "pure illustration, no annotations"
-// before it sees the description. We also forbid specific text-heavy
-// styles by name because that's the most reliable way to keep DALL-E
-// out of patent-drawing / technical-diagram / book-page modes.
+// DALL-E 3 ALWAYS rewrites prompts internally (visible in server logs as
+// `revised_prompt`). Narrative sentences like "When threatened it cries.
+// Its favorite food is spaghetti." get rewritten into storybook/comic-panel
+// descriptions and the text ends up rendered as captions. So we bypass the
+// story's narrative structure entirely when talking to DALL-E: each Mad Lib
+// has its own builder that emits a short TAG-STYLE description — visual
+// facts only, no connective narrative. The story template remains for the
+// kid-facing STORY phase; this is the DALL-E-only alternate.
+const IMAGE_PROMPT_BUILDERS = {
+  metamorphosis: (w) =>
+    `A ${w.adj1} ${w.noun1} creature with ${w.adj2} ${w.noun2} and ${w.adj3} ${w.noun3}. ` +
+    `Shown ${w.verb1} through ${w.noun4}. ` +
+    `Full-body cartoon illustration, centered subject, vivid colors.`,
+
+  'spatial-recalibration': (w) =>
+    `An indoor office scene. ${w.adj1}, ${w.adj2} walls. ` +
+    `${w.noun1} stand in every corner. ${w.noun2} hang from the ceiling. ` +
+    `In the break room: ${w.noun3} and ${w.noun4}. ` +
+    `Desks made of ${w.noun5}, ${w.adj3}, with ${w.noun6} on top. ` +
+    `A ${w.adj4} ${w.noun7} in the lobby. ` +
+    `Wide-angle cartoon illustration of the room, vivid colors.`,
+
+  'patent-pending': (w) =>
+    `A single whimsical contraption named "${w.noun1}". ` +
+    `It ${w.verb1} ${w.noun2}. ` +
+    `Visible mechanisms: ${w.verb2}, ${w.verb3}, ${w.verb4}. ` +
+    `Uses ${w.adj1} magic. Produces ${w.noun3}. ` +
+    `Centered on a plain background, cartoon illustration, vivid colors.`,
+};
+
 const ANTI_TEXT_PREFIX =
   'Generate a single purely pictorial illustration. ' +
   'ABSOLUTELY NO text, letters, numbers, words, captions, writing, labels, ' +
@@ -89,20 +110,18 @@ const ANTI_TEXT_PREFIX =
   'anywhere in the image. ' +
   'Do NOT render this as a patent drawing, technical diagram, blueprint, ' +
   'schematic, book illustration page, comic panel, or annotated figure. ' +
-  'Style it as vibrant illustration art, not a document. ' +
   'Subject to illustrate:';
 
 const ANTI_TEXT_SUFFIX =
-  'Reminder: the image must be entirely wordless. Pure visual illustration only.';
+  'Reminder: the image must be entirely wordless. Zero text anywhere. Pure visual illustration only.';
 
 function buildImagePrompt(madLib, collectedWords) {
-  const storyText = madLib.template
-    .map((token) =>
-      token.type === 'text' ? token.value : collectedWords[token.slotId],
-    )
-    .join('')
-    .trim();
-  return `${ANTI_TEXT_PREFIX}\n\n${storyText}\n\n${ANTI_TEXT_SUFFIX}`;
+  const builder = IMAGE_PROMPT_BUILDERS[madLib.id];
+  if (!builder) {
+    throw new Error(`No image prompt builder for Mad Lib: ${madLib.id}`);
+  }
+  const subject = builder(collectedWords);
+  return `${ANTI_TEXT_PREFIX}\n\n${subject}\n\n${ANTI_TEXT_SUFFIX}`;
 }
 
 export default function App() {
