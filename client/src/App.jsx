@@ -74,13 +74,20 @@ function reducer(state, action) {
 }
 
 // DALL-E 3 ALWAYS rewrites prompts internally (visible in server logs as
-// `revised_prompt`). Narrative sentences like "When threatened it cries.
-// Its favorite food is spaghetti." get rewritten into storybook/comic-panel
-// descriptions and the text ends up rendered as captions. So we bypass the
-// story's narrative structure entirely when talking to DALL-E: each Mad Lib
-// has its own builder that emits a short TAG-STYLE description — visual
-// facts only, no connective narrative. The story template remains for the
-// kid-facing STORY phase; this is the DALL-E-only alternate.
+// `revised_prompt`). Two gotchas baked into this design from painful
+// smoke-test results:
+//
+// 1) ANY labeled instruction like "Reminder:" or "Subject to illustrate:"
+//    gets echoed by DALL-E's rewriter and then rendered as literal signs
+//    or banners in the image. So the wrapping rules here are written as
+//    plain descriptive sentences with no colon-labeled headers.
+//
+// 2) Patent Pending has to be framed as a CARTOON CHARACTER, not a
+//    machine/contraption/device/mechanism. Those words are inseparable
+//    from blueprint/patent/technical-diagram imagery in DALL-E's training
+//    data — no amount of "no text" override wins. Pixar-style character
+//    framing steers DALL-E firmly into animated-character-design space
+//    where text captions don't belong.
 const IMAGE_PROMPT_BUILDERS = {
   metamorphosis: (w) =>
     `A ${w.adj1} ${w.noun1} creature with ${w.adj2} ${w.noun2} and ${w.adj3} ${w.noun3}. ` +
@@ -95,25 +102,29 @@ const IMAGE_PROMPT_BUILDERS = {
     `A ${w.adj4} ${w.noun7} in the lobby. ` +
     `Wide-angle cartoon illustration of the room, vivid colors.`,
 
+  // Patent Pending: we drop verb2/verb3/verb4 (the three simultaneous
+  // actions) and verb5 (activation behavior) from the image prompt. Action
+  // verb lists get rendered as labeled callouts pointing to the character.
+  // Those verbs are abstract motion anyway (hard to depict in a still
+  // frame); they stay in the kid-facing story template for the narration,
+  // just not in the DALL-E prompt.
   'patent-pending': (w) =>
-    `A single whimsical contraption named "${w.noun1}". ` +
-    `It ${w.verb1} ${w.noun2}. ` +
-    `Visible mechanisms: ${w.verb2}, ${w.verb3}, ${w.verb4}. ` +
-    `Uses ${w.adj1} magic. Produces ${w.noun3}. ` +
-    `Centered on a plain background, cartoon illustration, vivid colors.`,
+    `A cartoon Pixar-style character named "${w.noun1}" with a friendly face ` +
+    `and googly eyes, ${w.adj1} in appearance, holding a ${w.noun2} in its hands. ` +
+    `It is surrounded by a swirl of floating ${w.noun3}. ` +
+    `Centered on a plain colorful background. Friendly cartoon character portrait, ` +
+    `no technical elements, no diagrams, no labels pointing to parts.`,
 };
 
+// These are plain descriptive sentences on purpose. Earlier versions used
+// "Subject to illustrate:" and "Reminder:" which DALL-E literally rendered
+// as signs and banners.
 const ANTI_TEXT_PREFIX =
-  'Generate a single purely pictorial illustration. ' +
-  'ABSOLUTELY NO text, letters, numbers, words, captions, writing, labels, ' +
-  'signage, annotations, callouts, or typography of any kind may appear ' +
-  'anywhere in the image. ' +
-  'Do NOT render this as a patent drawing, technical diagram, blueprint, ' +
-  'schematic, book illustration page, comic panel, or annotated figure. ' +
-  'Subject to illustrate:';
-
-const ANTI_TEXT_SUFFIX =
-  'Reminder: the image must be entirely wordless. Zero text anywhere. Pure visual illustration only.';
+  'A purely pictorial illustration with absolutely no text, letters, numbers, ' +
+  'words, captions, writing, labels, signage, annotations, callouts, or ' +
+  'typography of any kind anywhere in the image. Not a patent drawing, not a ' +
+  'technical diagram, not a blueprint, not a schematic, not a book illustration ' +
+  'page, not a comic panel, not an annotated figure. Pure visual art only.';
 
 function buildImagePrompt(madLib, collectedWords) {
   const builder = IMAGE_PROMPT_BUILDERS[madLib.id];
@@ -121,7 +132,7 @@ function buildImagePrompt(madLib, collectedWords) {
     throw new Error(`No image prompt builder for Mad Lib: ${madLib.id}`);
   }
   const subject = builder(collectedWords);
-  return `${ANTI_TEXT_PREFIX}\n\n${subject}\n\n${ANTI_TEXT_SUFFIX}`;
+  return `${ANTI_TEXT_PREFIX}\n\n${subject}`;
 }
 
 export default function App() {
