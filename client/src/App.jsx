@@ -1,0 +1,128 @@
+import { useReducer, useEffect, useRef } from 'react';
+import { MAD_LIBS } from './data/madlibs.js';
+import SelectionScreen from './components/SelectionScreen.jsx';
+import CollectionScreen from './components/CollectionScreen.jsx';
+import RevealScreen from './components/RevealScreen.jsx';
+import StoryScreen from './components/StoryScreen.jsx';
+import ImageScreen from './components/ImageScreen.jsx';
+
+const initialState = {
+  phase: 'SELECTION',
+  selectedMadLib: null,
+  collectedWords: {},
+  currentSlotIndex: 0,
+  imageUrl: null,
+  imageError: null,
+  imageLoading: false,
+  storyTokenIndex: 0,
+  storyComplete: false,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'SELECT_MAD_LIB':
+      return {
+        ...initialState,
+        phase: 'COLLECTION',
+        selectedMadLib: action.madLib,
+        imageLoading: true,
+      };
+
+    case 'SUBMIT_WORD': {
+      const { slotId, word } = action;
+      const collectedWords = { ...state.collectedWords, [slotId]: word };
+      const nextIndex = state.currentSlotIndex + 1;
+      const isLast = nextIndex >= state.selectedMadLib.slots.length;
+      return {
+        ...state,
+        collectedWords,
+        currentSlotIndex: isLast ? state.currentSlotIndex : nextIndex,
+        phase: isLast ? 'REVEAL' : state.phase,
+      };
+    }
+
+    case 'START_STORY':
+      return { ...state, phase: 'STORY', storyTokenIndex: 0, storyComplete: false };
+
+    case 'ADVANCE_TOKEN':
+      return { ...state, storyTokenIndex: state.storyTokenIndex + 1 };
+
+    case 'STORY_COMPLETE':
+      return { ...state, storyComplete: true };
+
+    case 'GO_TO_IMAGE':
+      return { ...state, phase: 'IMAGE' };
+
+    case 'IMAGE_READY':
+      return { ...state, imageUrl: action.url, imageLoading: false, imageError: null };
+
+    case 'IMAGE_ERROR':
+      return { ...state, imageError: action.error, imageLoading: false };
+
+    case 'RETRY_IMAGE':
+      return { ...state, imageLoading: true, imageError: null, imageUrl: null };
+
+    case 'RESET':
+      return initialState;
+
+    default:
+      return state;
+  }
+}
+
+function buildImagePrompt(madLib) {
+  return `${madLib.background}. ${madLib.imagePromptSuffix}`;
+}
+
+export default function App() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const requestIdRef = useRef(0);
+
+  // Fire image request whenever imageLoading flips true (initial select + retries).
+  useEffect(() => {
+    if (!state.selectedMadLib || !state.imageLoading) return;
+    const myRequestId = ++requestIdRef.current;
+    const prompt = buildImagePrompt(state.selectedMadLib);
+    fetch('/api/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    })
+      .then(async (r) => ({ ok: r.ok, data: await r.json().catch(() => ({})) }))
+      .then(({ ok, data }) => {
+        if (myRequestId !== requestIdRef.current) return;
+        if (ok && data.url) {
+          dispatch({ type: 'IMAGE_READY', url: data.url });
+        } else {
+          dispatch({ type: 'IMAGE_ERROR', error: data.error || 'Image generation failed' });
+        }
+      })
+      .catch((err) => {
+        if (myRequestId !== requestIdRef.current) return;
+        dispatch({ type: 'IMAGE_ERROR', error: err.message || 'Network error' });
+      });
+  }, [state.selectedMadLib, state.imageLoading]);
+
+  // STORY → IMAGE is now gated on an explicit Continue click (StoryScreen),
+  // not on automatic transition when the image resolves.
+
+  const themeClass = state.selectedMadLib ? `theme-${state.selectedMadLib.theme}` : '';
+
+  return (
+    <div className={`app ${themeClass}`.trim()}>
+      {state.phase === 'SELECTION' && (
+        <SelectionScreen madLibs={MAD_LIBS} dispatch={dispatch} />
+      )}
+      {state.phase === 'COLLECTION' && (
+        <CollectionScreen state={state} dispatch={dispatch} />
+      )}
+      {state.phase === 'REVEAL' && <RevealScreen dispatch={dispatch} />}
+      {state.phase === 'STORY' && (
+        <StoryScreen state={state} dispatch={dispatch} />
+      )}
+      {state.phase === 'IMAGE' && (
+        <ImageScreen state={state} dispatch={dispatch} />
+      )}
+    </div>
+  );
+}

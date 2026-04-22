@@ -1,0 +1,17 @@
+{
+  "name": "madlibs-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mad Libs presentation SPA for Amivero TYCTWD 2026",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "build:client": "cd client && npm install && npm run build"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

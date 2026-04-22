@@ -1,0 +1,750 @@
+/* =========================================================================
+   Mad Libs Presentation App — global styles
+   Plain CSS only. CSS custom properties drive per-Mad-Lib theming.
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root,
+.app {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: #000;
+  color: #fff;
+}
+
+.app {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+/* =========================================================================
+   Theme variables (per-Mad-Lib)
+   ========================================================================= */
+
+.theme-creature {
+  --theme-bg: radial-gradient(ellipse at center, #1a0b3d 0%, #0d0221 65%, #000 100%);
+  --theme-bg-solid: #0d0221;
+  --theme-text: #e8e0ff;
+  --theme-accent: #3fd8e0;
+  --theme-accent-2: #b975ff;
+  --theme-underline: #3fd8e0;
+  --theme-word-label: rgba(232, 224, 255, 0.55);
+}
+
+.theme-office {
+  --theme-bg:
+    linear-gradient(rgba(10, 22, 40, 0.95), rgba(10, 22, 40, 0.95)),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255, 255, 255, 0.06) 40px, rgba(255, 255, 255, 0.06) 41px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255, 255, 255, 0.06) 40px, rgba(255, 255, 255, 0.06) 41px);
+  --theme-bg-solid: #0a1628;
+  --theme-text: #f5f5f5;
+  --theme-accent: #ffd95e;
+  --theme-accent-2: #ffffff;
+  --theme-underline: #ffd95e;
+  --theme-word-label: rgba(245, 245, 245, 0.55);
+}
+
+.theme-device {
+  --theme-bg: radial-gradient(ellipse at center, #faecd0 0%, #f5e6c8 65%, #e0cb9a 100%);
+  --theme-bg-solid: #f5e6c8;
+  --theme-text: #3a2510;
+  --theme-accent: #8b4513;
+  --theme-accent-2: #5a2c0c;
+  --theme-underline: #8b4513;
+  --theme-word-label: rgba(58, 37, 16, 0.55);
+}
+
+/* =========================================================================
+   Selection Screen
+   ========================================================================= */
+
+.selection-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a15 70%, #000 100%);
+  color: #fff;
+  position: relative;
+}
+
+.selection-title {
+  font-size: 2rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  margin-bottom: 4rem;
+  font-weight: 300;
+}
+
+.selection-cards {
+  display: flex;
+  gap: 2rem;
+  padding: 0 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 110rem;
+}
+
+.selection-card {
+  /* Fluid font: big on a 1920/4K display, smaller on a laptop window. */
+  font-size: clamp(2.25rem, 3.8vw, 4.5rem);
+  font-weight: 800;
+  padding: 2.5rem 2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  font-family: inherit;
+  flex: 1 1 22rem;
+  max-width: 32rem;
+  min-height: 16rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.selection-card:hover,
+.selection-card:focus-visible {
+  transform: scale(1.04);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 80px rgba(63, 216, 224, 0.35);
+  border-color: rgba(63, 216, 224, 0.55);
+  outline: none;
+}
+
+.selection-footer {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  opacity: 0.55;
+}
+
+.selection-footer img {
+  height: 3rem;
+  display: block;
+}
+
+.selection-footer span {
+  font-size: 0.9rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+/* =========================================================================
+   Collection Screen
+   ========================================================================= */
+
+.collection-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background: radial-gradient(ellipse at center, #15152a 0%, #08081a 100%);
+  color: #fff;
+}
+
+.collection-left {
+  flex: 65;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem 5rem;
+  position: relative;
+}
+
+.collection-right {
+  flex: 35;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3rem 2.5rem;
+  overflow-y: auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.collection-progress {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.collection-type {
+  font-size: 96px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #ffd95e;
+  animation: word-pulse 1.5s ease-in-out infinite;
+  line-height: 1;
+}
+
+.collection-hint {
+  font-size: 28px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 1.5rem;
+  margin-bottom: 1.25rem;
+  max-width: 90%;
+  line-height: 1.35;
+}
+
+.collection-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 2.25rem;
+  max-width: 90%;
+}
+
+.collection-examples-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-right: 0.25rem;
+  font-weight: 600;
+}
+
+.collection-example-pill {
+  font-size: 1.25rem;
+  padding: 0.5rem 1.15rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.collection-example-pill:hover,
+.collection-example-pill:focus-visible {
+  background: rgba(255, 217, 94, 0.15);
+  color: #ffd95e;
+  border-color: rgba(255, 217, 94, 0.55);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.collection-example-pill:active {
+  transform: translateY(0);
+  background: rgba(255, 217, 94, 0.22);
+}
+
+.collection-form {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 44rem;
+}
+
+.collection-input {
+  flex: 1;
+  font-size: 2.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+  color: #fff;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.collection-input:focus {
+  border-color: #ffd95e;
+  box-shadow: 0 0 30px rgba(255, 217, 94, 0.25);
+}
+
+.collection-submit {
+  font-size: 1.8rem;
+  padding: 0 2rem;
+  background: #ffd95e;
+  color: #0a0a15;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s ease;
+}
+
+.collection-submit:hover {
+  background: #ffe57a;
+}
+
+.collection-list-header {
+  font-size: 1rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+}
+
+.collection-list {
+  list-style: none;
+}
+
+.collection-list-item {
+  font-size: 26px;
+  padding: 0.5rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  animation: slide-in 0.3s ease-out;
+}
+
+.collection-list-type {
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.35);
+  min-width: 5.5rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.collection-list-word {
+  color: #fff;
+}
+
+.collection-list-item.pending {
+  opacity: 0.55;
+  animation: word-pulse 1.5s ease-in-out infinite;
+}
+
+.collection-list-item.pending .collection-list-word {
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.2em;
+}
+
+/* =========================================================================
+   Reveal Screen
+   ========================================================================= */
+
+.reveal-screen {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.reveal-text {
+  font-size: 120px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #fff;
+  animation: reveal-pulse 0.8s ease-in-out infinite;
+}
+
+.reveal-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: white-flash 0.5s ease-out;
+}
+
+.reveal-black {
+  background: #000;
+}
+
+/* =========================================================================
+   Story Screen
+   ========================================================================= */
+
+.story-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--theme-bg, #000);
+  color: var(--theme-text, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 6rem;
+  position: relative;
+}
+
+.story-text {
+  font-size: 40px;
+  line-height: 1.65;
+  max-width: 92%;
+  text-align: center;
+}
+
+.story-token {
+  display: inline;
+}
+
+.story-token-text {
+  animation: token-appear 0.15s ease-in;
+}
+
+.story-token-slot {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 0.2em;
+  animation: slot-appear 0.25s ease-out;
+}
+
+.story-slot-word {
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--theme-accent, #ffd95e);
+  border-bottom: 3px solid var(--theme-underline, #ffd95e);
+  padding: 0 0.2em 0.05em;
+  line-height: 1;
+}
+
+.story-slot-type {
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--theme-word-label, rgba(255, 255, 255, 0.5));
+  margin-top: 0.3em;
+  font-weight: 600;
+}
+
+.story-continue {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.35rem;
+  padding: 1rem 3rem;
+  background: var(--theme-accent, #ffd95e);
+  color: var(--theme-bg-solid, #000);
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: fade-in 0.6s ease-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.story-continue:hover,
+.story-continue:focus-visible {
+  transform: translateX(-50%) scale(1.05);
+  filter: brightness(1.08);
+  outline: none;
+  box-shadow: 0 14px 50px rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================================
+   Showcase (post-Continue split view with hover-to-expand)
+   Art frame on the left, filled-in story on the right. Hovering either panel
+   enlarges it and pushes the other offscreen.
+   ========================================================================= */
+
+.showcase {
+  width: 100%;
+  height: 100%;
+  background: var(--theme-bg, #000);
+  color: var(--theme-text, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  gap: 3rem;
+  padding: 3rem 4rem;
+}
+
+.showcase-frame-wrap,
+.showcase-story-wrap {
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    flex 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: flex, transform;
+  animation: showcase-panel-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.showcase-frame-wrap {
+  animation-name: showcase-frame-in;
+}
+
+.showcase-story-wrap {
+  animation-name: showcase-story-in;
+}
+
+/* Hover-to-expand. :has() lets one child's :hover drive sibling layout. */
+.showcase:has(.showcase-frame-wrap:hover) .showcase-frame-wrap {
+  flex: 1 1 100%;
+}
+.showcase:has(.showcase-frame-wrap:hover) .showcase-story-wrap {
+  transform: translateX(140%);
+  flex: 0 0 0;
+}
+
+.showcase:has(.showcase-story-wrap:hover) .showcase-story-wrap {
+  flex: 1 1 100%;
+}
+.showcase:has(.showcase-story-wrap:hover) .showcase-frame-wrap {
+  transform: translateX(-140%);
+  flex: 0 0 0;
+}
+
+/* Art frame: dark gallery frame with cream mat around the square image. */
+.art-frame {
+  background: linear-gradient(145deg, #1a1410 0%, #0d0a06 50%, #1a1410 100%);
+  padding: 1.75rem;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 2px 0 rgba(255, 255, 255, 0.04) inset,
+    0 40px 100px rgba(0, 0, 0, 0.65),
+    0 12px 30px rgba(0, 0, 0, 0.4);
+  max-width: 100%;
+  max-height: 100%;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.showcase:has(.showcase-frame-wrap:hover) .art-frame {
+  transform: scale(1.04);
+}
+
+.art-frame-mat {
+  background: linear-gradient(180deg, #f4ede0 0%, #e8dfc7 100%);
+  padding: 1.1rem;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.12) inset,
+    0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.art-frame-image {
+  display: block;
+  width: min(44vw, 68vh);
+  height: min(44vw, 68vh);
+  object-fit: cover;
+  animation: fade-in 0.9s ease-in;
+}
+
+.art-frame-panel {
+  width: min(44vw, 68vh);
+  height: min(44vw, 68vh);
+  background: #f4ede0;
+  color: #3a2510;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.art-frame-loading p {
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.art-frame-error h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.art-frame-error p {
+  font-size: 1rem;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+.art-frame-error button {
+  font-size: 1rem;
+  padding: 0.65rem 1.5rem;
+  background: #3a2510;
+  color: #f4ede0;
+  border: none;
+  border-radius: 0.35rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Showcase story panel: same template as StoryScreen, smaller & left-aligned. */
+.showcase-story {
+  font-size: clamp(1.2rem, 1.5vw, 1.75rem);
+  line-height: 1.75;
+  max-width: 42rem;
+  text-align: left;
+}
+
+.showcase:has(.showcase-story-wrap:hover) .showcase-story {
+  font-size: clamp(1.6rem, 2.2vw, 2.6rem);
+  max-width: 80rem;
+  text-align: center;
+  transition: font-size 0.5s ease, max-width 0.5s ease;
+}
+
+.showcase-story-token {
+  display: inline;
+}
+
+.showcase-story-slot {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: baseline;
+  margin: 0 0.2em;
+}
+
+.showcase-slot-word {
+  font-weight: 800;
+  color: var(--theme-accent, #ffd95e);
+  border-bottom: 2px solid var(--theme-underline, #ffd95e);
+  padding: 0 0.18em 0.05em;
+  line-height: 1.1;
+}
+
+.showcase-slot-type {
+  font-size: 0.55em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--theme-word-label, rgba(255, 255, 255, 0.5));
+  margin-top: 0.2em;
+  font-weight: 600;
+}
+
+.showcase-reset {
+  position: absolute;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.1rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.4rem;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  z-index: 10;
+}
+
+.showcase:hover .showcase-reset,
+.showcase-reset:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+/* =========================================================================
+   Spinner
+   ========================================================================= */
+
+.spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 4px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--theme-accent, #ffd95e);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+/* =========================================================================
+   Keyframe animations
+   ========================================================================= */
+
+@keyframes word-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes slide-in {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes reveal-pulse {
+  0%, 100% { transform: scale(1); color: #fff; }
+  33% { transform: scale(1.08); color: #3fd8e0; }
+  66% { transform: scale(1.04); color: #ffd95e; }
+}
+
+@keyframes white-flash {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes token-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slot-appear {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes showcase-frame-in {
+  from { opacity: 0; transform: translateX(-3rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes showcase-story-in {
+  from { opacity: 0; transform: translateX(3rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
