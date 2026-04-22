@@ -502,14 +502,18 @@ body {
 .showcase-frame-wrap,
 .showcase-story-wrap {
   flex: 1 1 0;
+  /* Without min-width:0, flex items refuse to shrink below content width,
+     which strands the non-hovered panel half-offscreen and half-visible. */
+  min-width: 0;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition:
     flex 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: flex, transform;
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.45s ease;
+  will-change: flex, transform, opacity;
   animation: showcase-panel-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -526,16 +530,20 @@ body {
   flex: 1 1 100%;
 }
 .showcase:has(.showcase-frame-wrap:hover) .showcase-story-wrap {
-  transform: translateX(140%);
   flex: 0 0 0;
+  transform: translateX(100vw);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .showcase:has(.showcase-story-wrap:hover) .showcase-story-wrap {
   flex: 1 1 100%;
 }
 .showcase:has(.showcase-story-wrap:hover) .showcase-frame-wrap {
-  transform: translateX(-140%);
   flex: 0 0 0;
+  transform: translateX(-100vw);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Art frame: dark gallery frame with cream mat around the square image. */
@@ -554,7 +562,7 @@ body {
 }
 
 .showcase:has(.showcase-frame-wrap:hover) .art-frame {
-  transform: scale(1.04);
+  transform: scale(1.2);
 }
 
 .art-frame-mat {
@@ -630,6 +638,13 @@ body {
   max-width: 80rem;
   text-align: center;
   transition: font-size 0.5s ease, max-width 0.5s ease;
+}
+
+/* Belt-and-suspenders: shrink story text during image-hover transition so
+   it can't look cramped even for a frame while the panel is collapsing. */
+.showcase:has(.showcase-frame-wrap:hover) .showcase-story {
+  font-size: clamp(0.75rem, 0.9vw, 1rem);
+  transition: font-size 0.4s ease;
 }
 
 .showcase-story-token {
