@@ -203,12 +203,16 @@ body {
 }
 
 .collection-type {
-  font-size: 96px;
+  /* Fluid so multi-word labels (BREAK ROOM, DESKTOP ITEM) don't overflow
+     on narrower viewports. Lands near 96px at 1920px. */
+  font-size: clamp(3.5rem, 7vw, 6rem);
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #ffd95e;
   animation: word-pulse 1.5s ease-in-out infinite;
   line-height: 1;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .collection-hint {
@@ -333,9 +337,10 @@ body {
   font-size: 13px;
   letter-spacing: 0.15em;
   color: rgba(255, 255, 255, 0.35);
-  min-width: 5.5rem;
+  min-width: 8rem;
   text-transform: uppercase;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .collection-list-word {
