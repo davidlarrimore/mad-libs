@@ -1,4 +1,4 @@
-export default function SelectionScreen({ madLibs, dispatch }) {
+export default function SelectionScreen({ madLibs, challenges = [], dispatch }) {
   return (
     <div className="selection-screen">
       <h1 className="selection-title">Mission Select</h1>
@@ -10,6 +10,16 @@ export default function SelectionScreen({ madLibs, dispatch }) {
             onClick={() => dispatch({ type: 'SELECT_MAD_LIB', madLib })}
           >
             {madLib.codename}
+          </button>
+        ))}
+        {challenges.map((challenge) => (
+          <button
+            key={challenge.id}
+            className="selection-card selection-card-challenge"
+            onClick={() => dispatch({ type: 'SELECT_CHALLENGE', challenge })}
+          >
+            <span className="selection-card-tag">Challenge</span>
+            {challenge.codename}
           </button>
         ))}
       </div>

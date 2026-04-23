@@ -1,13 +1,17 @@
 import { useReducer, useEffect, useRef } from 'react';
 import { MAD_LIBS } from './data/madlibs.js';
+import { INTEL_GUARDIAN, SPROUT_GREETING_TEXT } from './data/challenges.js';
 import SelectionScreen from './components/SelectionScreen.jsx';
 import CollectionScreen from './components/CollectionScreen.jsx';
 import RevealScreen from './components/RevealScreen.jsx';
 import StoryScreen from './components/StoryScreen.jsx';
 import ImageScreen from './components/ImageScreen.jsx';
+import ChallengeScreen from './components/ChallengeScreen.jsx';
+import VictoryScreen from './components/VictoryScreen.jsx';
 
 const initialState = {
   phase: 'SELECTION',
+  // Mad Lib state
   selectedMadLib: null,
   collectedWords: {},
   currentSlotIndex: 0,
@@ -16,7 +20,23 @@ const initialState = {
   imageLoading: false,
   storyTokenIndex: 0,
   storyComplete: false,
+  // Challenge state
+  selectedChallenge: null,
+  challengeMessages: [],
+  challengeCoachNotes: [],
+  challengeProgress: 0,
+  challengeSending: false,
+  challengeError: null,
 };
+
+const freshChallengeState = () => ({
+  selectedChallenge: null,
+  challengeMessages: [],
+  challengeCoachNotes: [],
+  challengeProgress: 0,
+  challengeSending: false,
+  challengeError: null,
+});
 
 function reducer(state, action) {
   switch (action.type) {
@@ -64,6 +84,76 @@ function reducer(state, action) {
 
     case 'RETRY_IMAGE':
       return { ...state, imageLoading: true, imageError: null, imageUrl: null };
+
+    case 'SELECT_CHALLENGE':
+      return {
+        ...initialState,
+        phase: 'CHALLENGE',
+        selectedChallenge: action.challenge,
+        challengeMessages: [{ role: 'agent', text: SPROUT_GREETING_TEXT }],
+      };
+
+    case 'CHALLENGE_SEND':
+      return {
+        ...state,
+        challengeMessages: [
+          ...state.challengeMessages,
+          { role: 'user', text: action.text },
+        ],
+        challengeSending: true,
+        challengeError: null,
+      };
+
+    case 'CHALLENGE_AGENT_REPLY': {
+      const replyText = action.text || '';
+      // Victory detection: either the scripted "MISSION SUCCESS" phrase OR
+      // the password itself leaks. The scripted phrase is what the system
+      // prompt asks for, but LLMs paraphrase sometimes — the password leak
+      // is the real semantic signal of victory.
+      const won =
+        /MISSION\s+SUCCESS/i.test(replyText) ||
+        /OLD\s+TREEHOUSE\s+BEHIND\s+THE\s+LIBRARY/i.test(replyText);
+      const lost = /MISSION\s+FAILED/i.test(replyText);
+      return {
+        ...state,
+        challengeMessages: [
+          ...state.challengeMessages,
+          { role: 'agent', text: replyText },
+        ],
+        challengeSending: false,
+        phase: won ? 'VICTORY' : lost ? 'CHALLENGE' : state.phase,
+        challengeProgress: won ? 10 : state.challengeProgress,
+      };
+    }
+
+    case 'CHALLENGE_COACH_NOTE':
+      return {
+        ...state,
+        challengeCoachNotes: [
+          ...state.challengeCoachNotes,
+          { text: action.text },
+        ],
+        challengeProgress:
+          typeof action.progress === 'number'
+            ? action.progress
+            : state.challengeProgress,
+      };
+
+    case 'CHALLENGE_ERROR':
+      return {
+        ...state,
+        challengeSending: false,
+        challengeError: action.error,
+      };
+
+    case 'CHALLENGE_RESTART':
+      return {
+        ...state,
+        ...freshChallengeState(),
+        phase: 'CHALLENGE',
+        selectedChallenge: state.selectedChallenge || INTEL_GUARDIAN,
+        challengeMessages: [{ role: 'agent', text: SPROUT_GREETING_TEXT }],
+      };
 
     case 'RESET':
       return initialState;
@@ -188,12 +278,16 @@ export default function App() {
   // STORY → IMAGE is now gated on an explicit Continue click (StoryScreen),
   // not on automatic transition when the image resolves.
 
-  const themeClass = state.selectedMadLib ? `theme-${state.selectedMadLib.theme}` : '';
+  const themeClass = state.selectedMadLib
+    ? `theme-${state.selectedMadLib.theme}`
+    : state.selectedChallenge
+    ? `theme-${state.selectedChallenge.theme}`
+    : '';
 
   return (
     <div className={`app ${themeClass}`.trim()}>
       {state.phase === 'SELECTION' && (
-        <SelectionScreen madLibs={MAD_LIBS} dispatch={dispatch} />
+        <SelectionScreen madLibs={MAD_LIBS} challenges={[INTEL_GUARDIAN]} dispatch={dispatch} />
       )}
       {state.phase === 'COLLECTION' && (
         <CollectionScreen state={state} dispatch={dispatch} />
@@ -204,6 +298,12 @@ export default function App() {
       )}
       {state.phase === 'IMAGE' && (
         <ImageScreen state={state} dispatch={dispatch} />
+      )}
+      {state.phase === 'CHALLENGE' && (
+        <ChallengeScreen state={state} dispatch={dispatch} />
+      )}
+      {state.phase === 'VICTORY' && (
+        <VictoryScreen state={state} dispatch={dispatch} />
       )}
     </div>
   );

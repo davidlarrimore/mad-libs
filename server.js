@@ -62,6 +62,60 @@ app.post('/api/generate-image', async (req, res) => {
   }
 });
 
+app.post('/api/chat', async (req, res) => {
+  const { systemPrompt, messages, temperature, maxTokens } = req.body || {};
+  if (!systemPrompt || typeof systemPrompt !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid systemPrompt' });
+  }
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'Missing or empty messages array' });
+  }
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'OPENAI_API_KEY is not set on the server' });
+  }
+
+  const requestId = Math.random().toString(36).slice(2, 8);
+  const startedAt = Date.now();
+  const label = req.body?.label || 'chat';
+  console.log(`\n[${label} ${requestId}] → OpenAI (${messages.length} turns)`);
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages,
+        ],
+        temperature: typeof temperature === 'number' ? temperature : 0.8,
+        max_tokens: typeof maxTokens === 'number' ? maxTokens : 400,
+      }),
+    });
+
+    const data = await response.json();
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+
+    const content = data?.choices?.[0]?.message?.content;
+    if (response.ok && content) {
+      console.log(`[${label} ${requestId}] ← ok in ${elapsed}s (${content.length} chars)`);
+      return res.json({ content });
+    }
+    console.error(`[${label} ${requestId}] ← FAILED in ${elapsed}s (HTTP ${response.status}):`, data);
+    return res.status(response.status || 500).json({
+      error: data?.error?.message || 'Chat completion failed',
+    });
+  } catch (err) {
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.error(`[${label} ${requestId}] ← threw after ${elapsed}s:`, err);
+    return res.status(500).json({ error: err.message || 'Unknown server error' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
