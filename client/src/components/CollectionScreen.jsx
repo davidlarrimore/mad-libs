@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import MissionBack from './MissionBack.jsx';
 
 export default function CollectionScreen({ state, dispatch }) {
   const { selectedMadLib, collectedWords, currentSlotIndex } = state;
@@ -32,6 +33,7 @@ export default function CollectionScreen({ state, dispatch }) {
 
   return (
     <div className="collection-screen">
+      <MissionBack dispatch={dispatch} />
       <div className="collection-left">
         <div className="collection-progress">
           {currentSlotIndex + 1} of {slots.length}

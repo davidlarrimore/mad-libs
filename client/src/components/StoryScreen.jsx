@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import MissionBack from './MissionBack.jsx';
 
 // Pacing: text tokens land every 500ms, slot (filled word) tokens get a longer
 // 900ms beat for emphasis. Slower feels more theatrical; Continue gate lets
@@ -37,6 +38,7 @@ export default function StoryScreen({ state, dispatch }) {
 
   return (
     <div className="story-screen">
+      <MissionBack dispatch={dispatch} />
       <p className="story-text">
         {visibleTokens.map((token, i) => {
           if (token.type === 'text') {

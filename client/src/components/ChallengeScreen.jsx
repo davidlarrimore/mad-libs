@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import {
   SPROUT_SYSTEM_PROMPT,
   COACH_SYSTEM_PROMPT,
+  INTEL_GUARDIAN,
 } from '../data/challenges.js';
+import MissionBack from './MissionBack.jsx';
 
 // Build a single user-message payload for the coach describing the full
 // exchange so far. The coach is stateless from OpenAI's perspective each
@@ -35,7 +37,10 @@ export default function ChallengeScreen({ state, dispatch }) {
     challengeProgress,
     challengeSending,
     challengeError,
+    selectedChallenge,
   } = state;
+
+  const challenge = selectedChallenge || INTEL_GUARDIAN;
 
   const [input, setInput] = useState('');
   const inputRef = useRef(null);
@@ -146,19 +151,14 @@ export default function ChallengeScreen({ state, dispatch }) {
 
   return (
     <div className="challenge-screen">
+      <MissionBack dispatch={dispatch} />
       <header className="challenge-header">
         <div className="challenge-title">
           <span className="challenge-title-label">Mission</span>
-          <span className="challenge-title-main">INTEL GUARDIAN</span>
+          <span className="challenge-title-main">
+            {challenge.codename.toUpperCase()}
+          </span>
         </div>
-        <button
-          type="button"
-          className="challenge-home"
-          onClick={() => dispatch({ type: 'RESET' })}
-          title="Back to Mission Select"
-        >
-          ← Missions
-        </button>
       </header>
 
       <div className="challenge-body">
@@ -197,6 +197,13 @@ export default function ChallengeScreen({ state, dispatch }) {
         </section>
 
         <aside className="challenge-coach" aria-label="Coach notes">
+          {challenge.briefing && (
+            <div className="challenge-briefing">
+              <div className="challenge-briefing-label">Mission Briefing</div>
+              <p className="challenge-briefing-text">{challenge.briefing}</p>
+            </div>
+          )}
+
           <div className="challenge-coach-header">
             <span className="challenge-coach-emoji">🎓</span>
             <span className="challenge-coach-name">COACH'S NOTES</span>

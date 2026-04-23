@@ -9,6 +9,7 @@ export const MAD_LIBS = [
     id: 'metamorphosis',
     codename: 'Operation Metamorphosis',
     theme: 'creature',
+    description: 'Build a creature unlike any other.',
     slots: [
       { id: 'adj1',  type: 'APPEARANCE', hint: 'how it looks overall',     examples: ['glowing', 'lumpy', 'polka-dotted'] },
       { id: 'noun1', type: 'THING',      hint: 'an animal or object',      examples: ['octopus', 'refrigerator', 'pineapple'] },
@@ -53,6 +54,7 @@ export const MAD_LIBS = [
     id: 'spatial-recalibration',
     codename: 'Spatial Recalibration',
     theme: 'office',
+    description: 'Redesign the office. Make it weird.',
     slots: [
       { id: 'adj1',  type: 'COLOR',     hint: 'a color or pattern',      examples: ['neon', 'polka-dotted', 'tie-dye'] },
       { id: 'adj2',  type: 'TEXTURE',   hint: 'a surface quality',       examples: ['bouncy', 'furry', 'squishy'] },
@@ -97,6 +99,7 @@ export const MAD_LIBS = [
     id: 'patent-pending',
     codename: 'Patent Pending',
     theme: 'device',
+    description: 'Invent something that shouldn\'t exist.',
     slots: [
       { id: 'noun1', type: 'NAME',      hint: 'make up a name',              examples: ['The Snorkelizer', 'Mega-Scooper', 'The Confuzzler'] },
       { id: 'verb1', type: 'ACTION',    hint: 'any action verb',             examples: ['inflates', 'dissolves', 'tickles'] },

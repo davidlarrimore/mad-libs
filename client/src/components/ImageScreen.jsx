@@ -1,3 +1,5 @@
+import MissionBack from './MissionBack.jsx';
+
 export default function ImageScreen({ state, dispatch }) {
   const { imageUrl, imageError, selectedMadLib, collectedWords } = state;
 
@@ -7,6 +9,8 @@ export default function ImageScreen({ state, dispatch }) {
 
   return (
     <div className="showcase">
+      <MissionBack dispatch={dispatch} />
+
       <div className="showcase-frame-wrap">
         <div className="art-frame">
           {imageError ? (
@@ -64,13 +68,6 @@ export default function ImageScreen({ state, dispatch }) {
           title="Re-generate the image using the same prompt"
         >
           {state.imageLoading ? 'Generating…' : 'Retry'}
-        </button>
-        <button
-          className="showcase-action"
-          onClick={() => dispatch({ type: 'RESET' })}
-          title="Start a new round"
-        >
-          Reset
         </button>
       </div>
     </div>
